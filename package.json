@@ -1,0 +1,38 @@
+{
+  "name": "noise-overlay",
+  "version": "0.0.1",
+  "private": true,
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "tsc && electron .",
+    "test": "tsc && node dist/test_levels.js",
+    "icon": "electron tools/make-icon.js",
+    "dist": "tsc && electron-builder --win portable"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "electron": "^32.0.0",
+    "electron-builder": "^26.15.3",
+    "typescript": "^5.5.0"
+  },
+  "build": {
+    "appId": "com.noise-overlay.app",
+    "productName": "noise-overlay",
+    "artifactName": "noise-overlay.exe",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "!dist/test_levels.js",
+      "src/**/*",
+      "!src/**/*.ts",
+      "build/icon.png"
+    ],
+    "win": {
+      "icon": "build/icon.png"
+    }
+  }
+}
