@@ -178,7 +178,10 @@ function registerIPC(): void {
     dragOffsetY = cursor.y - wy;
   });
   ipcMain.on('drag-move', (_event, x: number, y: number) => {
-    win.setPosition(x - dragOffsetX, y - dragOffsetY);
+    // setPosition only takes integers, and screenX/screenY come back fractional
+    // on a second monitor with a different DPI scale — unrounded it throws
+    // "conversion failure" in the main process mid-drag.
+    win.setPosition(Math.round(x - dragOffsetX), Math.round(y - dragOffsetY));
   });
 
   ipcMain.handle('settings-get', () => settings);
