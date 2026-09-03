@@ -1,0 +1,36 @@
+name: Build and Upload Windows EXE
+
+on:
+  release:
+    types: [published]
+
+# Required to allow the workflow to upload assets to the release
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        # If you do not commit a package-lock.json file, change 'npm ci' to 'npm install'
+        run: npm ci
+
+      - name: Build Application
+        run: npm run dist
+
+      - name: Upload EXE to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          # Matches the output directory and artifactName from the package.json
+          files: release/noise-overlay.exe
