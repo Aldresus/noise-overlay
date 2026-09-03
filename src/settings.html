@@ -3,71 +3,75 @@
 <head>
 <meta charset="utf-8" />
 <title>Réglages — noise-overlay</title>
+<link rel="stylesheet" href="tokens.css" />
 <style>
   html, body { margin: 0; padding: 0; }
   body {
-    background: #14161b;
+    background: var(--hcds-surface);
     overflow: auto;
-    color: #e7e9ee;
-    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-    font-size: 15px;
-    line-height: 1.45;
+    color: var(--hcds-fg);
+    font-family: var(--hcds-font-sans);
     padding: 18px 20px 22px;
   }
 
+  /* Card: radius-panel, surface-raised, 20px padding, children 16px apart. */
   .card {
-    background: #1c1f27;
-    border: 1px solid #2b303b;
-    border-radius: 10px;
-    padding: 14px 16px;
-    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: var(--hcds-surface-raised);
+    border: 1px solid var(--hcds-border);
+    border-radius: var(--hcds-radius-panel);
+    box-shadow: var(--hcds-shadow-panel);
+    padding: 20px;
+    margin-bottom: 16px;
   }
-  .card h2 {
-    font-size: 12px;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    color: #99a3b5;
-    font-weight: 600;
-    margin: 0 0 10px;
-  }
-  .hint { font-size: 13px; color: #99a3b5; margin: 2px 0 0; }
+  .card h2 { color: var(--hcds-fg-muted); margin: 0; }
+  .hint { color: var(--hcds-fg-muted); margin: 0; }
 
   /* --- état --------------------------------------------------------- */
   .status { display: flex; align-items: baseline; gap: 10px; }
-  #state { font-size: 26px; font-weight: 600; }
-  #overTime { font-size: 13px; color: #8b94a5; margin-left: auto; }
+  #overTime { color: var(--hcds-fg-muted); margin-left: auto; }
 
   /* --- jauges ------------------------------------------------------- */
+  /* Meter: sunken track, radius-control, no border. */
   #bar, #patienceBar {
     position: relative;
     width: 100%;
-    background: #0e1014;
-    border: 1px solid #2b303b;
-    border-radius: 6px;
+    background: var(--hcds-surface-sunken);
+    border-radius: var(--hcds-radius-control);
     box-sizing: border-box;
     overflow: hidden;
   }
-  #bar { height: 46px; margin-bottom: 10px; }
-  #patienceBar { height: 20px; }
+  /* ponytail: the DS Meter track is 8px; this one carries the instant tick and
+     the threshold flag on top, so it keeps a readable height. */
+  #bar { height: 24px; cursor: ew-resize; touch-action: none; }
+  /* the bar is a drag target for the threshold; #bar is a div, so hover is the
+     only state it has. Brightness only — widening the marker would slide its
+     flag off centre and move the line away from the value it reads. */
+  #bar:hover #thresholdMarker { filter: brightness(1.25); }
+  #patienceBar { height: 8px; }
   #fill, #patienceFill {
     position: absolute;
     left: 0; top: 0; bottom: 0;
-    transition: background 400ms ease;
+    /* ponytail: the DS Meter transitions width; these are pushed at 20 Hz and a
+       200 ms width tween would smear the reading. Colour only. */
+    transition: background var(--hcds-duration-slow) ease-out;
   }
-  #fill { width: 0%; background: #5cbf74; }
-  #fill.over { background: #e0503f; }
-  #patienceFill { width: 100%; background: #5cbf74; }
-  #patienceFill.attentif { background: #e8b93c; }
-  #patienceFill.inquiet  { background: #ef8b3c; }
-  #patienceFill.fache    { background: #e0503f; }
+  #fill { width: 0%; background: var(--hcds-accent); }
+  #fill.over { background: var(--hcds-danger); }
+  #patienceFill { width: 100%; background: var(--hcds-success); }
+  #patienceFill.attentif { background: var(--hcds-warning); }
+  #patienceFill.inquiet  { background: var(--hcds-chart-2); }
+  #patienceFill.fache    { background: var(--hcds-danger); }
   /* instantaneous level, drawn over the smoothed fill */
   #tick {
     position: absolute;
     top: 0; bottom: 0;
     width: 3px;
     left: 0%;
-    background: #ffffff;
-    box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+    background: var(--hcds-fg);
+    box-shadow: 0 0 6px oklch(97% 0.006 252.3 / 0.6);
   }
   /* the line the teacher is setting: full height + a flag notch on top */
   #thresholdMarker {
@@ -75,7 +79,7 @@
     top: 0; bottom: 0;
     width: 3px;
     left: 50%;
-    background: #ffd52e;
+    background: var(--hcds-warning);
     z-index: 2;
   }
   #thresholdMarker::before {
@@ -84,9 +88,16 @@
     top: 0; left: -4px;
     border-left: 5.5px solid transparent;
     border-right: 5.5px solid transparent;
-    border-top: 8px solid #ffd52e;
+    border-top: 8px solid var(--hcds-warning);
   }
-  .legend { display: flex; gap: 16px; font-size: 12px; color: #99a3b5; }
+  .legend {
+    display: flex;
+    gap: 16px;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    letter-spacing: 0.005em;
+    color: var(--hcds-fg-muted);
+  }
   .legend span::before {
     content: '';
     display: inline-block;
@@ -95,73 +106,137 @@
     margin-right: 6px;
     background: currentColor;
   }
-  .legend .k-seuil { color: #ffd52e; }
-  .legend .k-inst { color: #ffffff; }
-  .legend .k-moy { color: #5cbf74; }
+  .legend .k-seuil { color: var(--hcds-warning); }
+  .legend .k-inst { color: var(--hcds-fg); }
+  .legend .k-moy { color: var(--hcds-accent); }
 
   /* --- réglages ----------------------------------------------------- */
-  .control { margin-bottom: 18px; }
-  .control:last-child { margin-bottom: 0; }
-  .control > label { display: block; font-weight: 600; }
+  /* label / control spacing is 6px in the DS */
+  .control { display: flex; flex-direction: column; gap: 6px; }
+  .control > label { font-weight: 500; color: var(--hcds-fg); }
   .val {
-    color: #7fd4ff;
+    color: var(--hcds-accent);
     font-variant-numeric: tabular-nums;
-    font-size: 17px;
   }
+
+  /* ponytail: the DS ships no Slider component, so this is not a port of one —
+     the track just reuses the Meter metrics (8px, sunken, radius-control) and
+     the thumb the accent. -webkit- prefixes only: this is Chromium. */
   input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
     width: 100%;
-    margin: 8px 0 0;
-    height: 26px;
-    accent-color: #7fd4ff;
+    height: 16px;
+    margin: 2px 0 0;
+    background: none;
   }
-  .check { display: flex; align-items: center; gap: 10px; font-weight: 600; }
-  .check input { width: 20px; height: 20px; accent-color: #7fd4ff; }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: var(--hcds-radius-control);
+    background: var(--hcds-surface-sunken);
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    margin-top: -4px;
+    border-radius: 50%;
+    border: 2px solid var(--hcds-surface);
+    background: var(--hcds-accent);
+    transition: background var(--hcds-duration-base) ease;
+  }
+  input[type="range"]:hover::-webkit-slider-thumb { background: var(--hcds-accent-hover); }
 
+  /* Checkbox: 20x20 box, radius-control / 2 */
+  .check { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; }
+  .check input {
+    -webkit-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--hcds-border-strong);
+    border-radius: 4px;
+    background: var(--hcds-surface);
+    cursor: pointer;
+    transition: background var(--hcds-duration-base) ease, border-color var(--hcds-duration-base) ease;
+  }
+  .check input::before {
+    content: '✓';
+    font-size: 13px;
+    line-height: 1;
+    color: var(--hcds-fg-on-accent);
+    opacity: 0;
+  }
+  .check input:checked { background: var(--hcds-accent); border-color: var(--hcds-accent); }
+  .check input:checked::before { opacity: 1; }
+
+  /* Control (select / input): 40px tall, 0 14px padding, radius-control */
   #micSelect {
+    box-sizing: border-box;
     width: 100%;
-    margin-top: 6px;
+    height: 40px;
+    padding: 0 14px;
     font: inherit;
-    color: #e7e9ee;
-    background: #0e1014;
-    border: 1px solid #2b303b;
-    border-radius: 8px;
-    padding: 9px 10px;
+    color: var(--hcds-fg);
+    background: var(--hcds-surface);
+    border: 1px solid var(--hcds-border);
+    border-radius: var(--hcds-radius-control);
+    transition: border-color var(--hcds-duration-base) ease;
   }
+  #micSelect:hover { border-color: var(--hcds-border-strong); }
 
-  details { margin-bottom: 14px; }
+  details { margin-bottom: 16px; }
   summary {
     cursor: pointer;
-    color: #99a3b5;
-    font-size: 13px;
+    color: var(--hcds-fg-muted);
     padding: 4px 0;
   }
   #readout {
     white-space: pre;
-    font-family: 'Consolas', monospace;
-    font-size: 13px;
-    color: #99a3b5;
+    font-family: var(--hcds-font-mono);
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: var(--hcds-fg-muted);
     margin-top: 8px;
   }
 
-  footer { font-size: 12px; color: #767f8f; text-align: center; }
+  footer {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: var(--hcds-fg-subtle);
+    text-align: center;
+  }
   kbd {
-    font: inherit;
-    background: #1c1f27;
-    border: 1px solid #2b303b;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    min-width: 20px;
+    padding: 0 6px;
+    font-family: var(--hcds-font-mono);
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--hcds-fg-muted);
+    background: var(--hcds-surface-raised);
+    border: 1px solid var(--hcds-border);
     border-radius: 4px;
-    padding: 1px 5px;
-    color: #a9b2c1;
   }
 
-  :focus-visible { outline: 2px solid #7fd4ff; outline-offset: 2px; }
+  :focus-visible { outline: 2px solid var(--hcds-accent); outline-offset: 2px; }
 </style>
 </head>
-<body>
+<body class="hcds-ui">
 
 <section class="card">
-  <h2>Humeur du chat</h2>
+  <h2 class="hcds-overline">Humeur du chat</h2>
   <div class="status">
-    <div id="state">Le chat est content</div>
+    <div id="state" class="hcds-subheading">Le chat est content</div>
     <div id="overTime">0,0 s au-dessus du seuil</div>
   </div>
   <div id="patienceBar"><div id="patienceFill"></div></div>
@@ -169,7 +244,7 @@
 </section>
 
 <section class="card">
-  <h2>Bruit de la classe</h2>
+  <h2 class="hcds-overline">Bruit de la classe</h2>
   <div id="bar">
     <div id="fill"></div>
     <div id="tick"></div>
@@ -180,7 +255,7 @@
     <span class="k-inst">instant</span>
     <span class="k-seuil">seuil réglé</span>
   </div>
-  <div class="control" style="margin-top:14px">
+  <div class="control">
     <label for="threshold">Seuil de bruit — <span class="val" id="thresholdValue"></span></label>
     <p class="hint">Placez la ligne jaune juste au-dessus du bruit de travail normal : au-dessus, le chat perd patience.</p>
     <input id="threshold" type="range" min="0" max="1" step="0.01" value="0.5" />
@@ -188,7 +263,7 @@
 </section>
 
 <section class="card">
-  <h2>Réactivité</h2>
+  <h2 class="hcds-overline">Réactivité</h2>
   <div class="control">
     <label for="drain">Patience — le chat se fâche après <span class="val" id="drainValue"></span> s de bruit</label>
     <input id="drain" type="range" min="5" max="120" step="1" value="20" />
@@ -203,7 +278,7 @@
 </section>
 
 <section class="card">
-  <h2>Affichage</h2>
+  <h2 class="hcds-overline">Affichage</h2>
   <div class="control">
     <label for="size">Taille du chat — <span class="val" id="sizeValue"></span> px</label>
     <p class="hint">Le chat reste carré ; il se redimensionne depuis son coin haut-gauche.</p>
@@ -212,9 +287,11 @@
 </section>
 
 <section class="card">
-  <h2>Micro</h2>
-  <label for="micSelect" class="hint">Microphone utilisé pour écouter la classe</label>
-  <select id="micSelect"></select>
+  <h2 class="hcds-overline">Micro</h2>
+  <div class="control">
+    <label for="micSelect" class="hint">Microphone utilisé pour écouter la classe</label>
+    <select id="micSelect"></select>
+  </div>
 </section>
 
 <details>

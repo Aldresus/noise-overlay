@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8" />
+<link rel="stylesheet" href="tokens.css" />
 <style>
   html, body {
     background: transparent;
@@ -19,21 +20,26 @@
 
   /* fixed: the cat fills the whole viewport and body no longer scrolls, so a
      banner in normal flow would sit permanently off-screen. */
+  /* ponytail: the DS has no alert component — this is a panel wearing the
+     danger border, so it stays a token composition rather than a new look. */
   #err {
     position: fixed;
     left: 0; right: 0; top: 0;
     z-index: 20;
-    color: #ffd7d1;
-    background: #5a1e17;
-    border: 1px solid #e0503f;
-    border-radius: 8px;
+    font-family: var(--hcds-font-sans);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--hcds-fg);
+    background: var(--hcds-surface-raised);
+    border: 1px solid var(--hcds-danger);
+    border-radius: var(--hcds-radius-control);
+    box-shadow: var(--hcds-shadow-panel);
     padding: 10px 14px;
     margin: 12px 16px 0;
-    font-size: 14px;
   }
   #err:empty { display: none; }
 
-  :focus-visible { outline: 2px solid #7fd4ff; outline-offset: 2px; }
+  :focus-visible { outline: 2px solid var(--hcds-accent); outline-offset: 2px; }
 
   /* --- menu clic droit ---------------------------------------------- */
   /* drawn in the page, not by Menu.popup(): a native menu's look is the OS's
@@ -42,39 +48,45 @@
     position: fixed;
     left: 0; top: 0;
     z-index: 10;
-    min-width: 150px;
-    background: #1c1f27;
-    border: 1px solid #2b303b;
-    border-radius: 10px;
-    padding: 6px;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+    min-width: 128px;
+    background: var(--hcds-surface-raised);
+    border: 1px solid var(--hcds-border);
+    border-radius: var(--hcds-radius-panel);
+    padding: 4px;
+    /* ponytail: shadow-popover is tuned for the light theme and vanishes over a
+       transparent overlay, so a plain dark drop is layered under it. */
+    box-shadow: var(--hcds-shadow-popover), 0 10px 28px oklch(0% 0 0 / 0.5);
   }
   #ctxmenu[hidden] { display: none; }
   #ctxmenu button {
     position: relative;
-    display: block;
+    display: flex;
+    align-items: center;
     width: 100%;
+    height: 32px;
     box-sizing: border-box;
-    font: inherit;
-    font-size: 14px;
+    font-family: var(--hcds-font-sans);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
     white-space: nowrap;
-    text-align: center;
-    color: #e7e9ee;
+    text-align: left;
+    color: var(--hcds-fg);
     background: none;
     border: 0;
-    border-radius: 6px;
-    padding: 8px 28px;
+    border-radius: var(--hcds-radius-control);
+    /* left padding leaves the ✓ column its 8px + glyph */
+    padding: 6px 8px 6px 28px;
     cursor: pointer;
   }
-  #ctxmenu button:hover, #ctxmenu button:focus { background: #262b36; }
-  #ctxmenu hr { border: 0; border-top: 1px solid #2b303b; margin: 6px 4px; }
+  #ctxmenu button:hover, #ctxmenu button:focus { background: var(--hcds-accent-subtle); }
+  #ctxmenu hr { border: 0; height: 1px; background: var(--hcds-border); margin: 4px 0; }
   /* the two checkbox items of the tray menu, mirrored — no new state, the
      body classes main already toggles say everything. */
   #ctxmenu button::before {
     content: '';
     position: absolute;
-    left: 10px;
-    color: #7fd4ff;
+    left: 8px;
+    color: var(--hcds-accent);
   }
   body.fullscreen #ctxmenu [data-action="fullscreen"]::before,
   body.settings-open #ctxmenu [data-action="settings"]::before { content: '✓'; }

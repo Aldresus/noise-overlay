@@ -1,0 +1,81 @@
+/* hcds design tokens, dark theme, reimplemented as plain CSS.
+   ponytail: values copied from the DS Storybook, not the DS itself — this app
+   is standalone Electron (no React, no Tailwind, no build step for CSS).
+   Shared by index.html and settings.html; electron-builder ships src/**\/* minus
+   *.ts, so this file lands in the portable build. */
+/* The DS's own two faces, taken from its Storybook (src/fonts/). Variable
+   weight, latin subset — 82 kB for both, and no network at runtime: a classroom
+   machine may well be offline, so a webfont link is not an option. */
+@font-face {
+  font-family: 'Inter';
+  src: url('fonts/inter-latin-wght-normal.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Bitter';
+  src: url('fonts/bitter-latin-wght-normal.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: block;
+}
+
+:root {
+  /* surfaces / text / borders */
+  --hcds-surface: oklch(21% 0.024 252.3);
+  --hcds-surface-raised: oklch(25% 0.026 252.3);
+  --hcds-surface-sunken: oklch(17% 0.022 252.3);
+  --hcds-fg: oklch(97% 0.006 252.3);
+  --hcds-fg-muted: oklch(72% 0.022 252.3);
+  --hcds-fg-subtle: oklch(58% 0.022 252.3);
+  --hcds-fg-on-accent: oklch(17% 0.022 252.3);
+  --hcds-border: oklch(31% 0.026 252.3);
+  --hcds-border-strong: oklch(40% 0.030 252.3);
+
+  /* accent and states */
+  --hcds-accent: oklch(68.9% 0.160 252.3);
+  --hcds-accent-hover: oklch(76% 0.115 252.3);
+  --hcds-accent-subtle: oklch(31% 0.065 252.3);
+  --hcds-success: oklch(70% 0.15 155);
+  --hcds-warning: oklch(78% 0.14 75);
+  --hcds-danger: oklch(69% 0.18 25);
+  --hcds-danger-hover: oklch(75% 0.16 25);
+  --hcds-chart-2: oklch(75% 0.160 45);
+
+  /* shape / motion */
+  --hcds-radius-control: 0.5rem;
+  --hcds-radius-panel: 0.75rem;
+  --hcds-duration-fast: 100ms;
+  --hcds-duration-base: 150ms;
+  --hcds-duration-slow: 200ms;
+  --hcds-shadow-panel: 0 1px 2px oklch(20% 0.03 252.3 / .06), 0 1px 3px oklch(20% 0.03 252.3 / .10);
+  --hcds-shadow-popover: 0 4px 12px oklch(20% 0.03 252.3 / .10), 0 12px 32px oklch(20% 0.03 252.3 / .12);
+
+  /* type. ponytail: no @import — Inter/Bitter are not bundled and the app must
+     run offline, so these are the DS fallback stacks and nothing more. */
+  --hcds-font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --hcds-font-display: "Bitter", Georgia, "Times New Roman", serif;
+  --hcds-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+}
+
+/* ponytail: only the three steps of the scale actually used are declared. */
+.hcds-overline {
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  letter-spacing: 0.09em;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.hcds-ui {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  letter-spacing: 0;
+}
+.hcds-subheading {
+  font-family: var(--hcds-font-display);
+  font-size: 1.5rem;
+  line-height: 2rem;
+  letter-spacing: -0.014em;
+  font-weight: 600;
+}

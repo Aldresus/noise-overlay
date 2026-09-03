@@ -2,6 +2,7 @@
 // No import/export: this loads as a plain <script> in settings.html.
 
 (function (): void {
+  const bar = document.getElementById('bar')!;
   const fill = document.getElementById('fill')!;
   const tickEl = document.getElementById('tick')!;
   const thresholdMarker = document.getElementById('thresholdMarker')!;
@@ -84,6 +85,26 @@
     wireSlider('threshold', 'thresholdValue', 'threshold', (v) => {
       thresholdMarker.style.left = `${v * 100}%`;
     });
+
+    // dragging the bar itself is a shortcut onto the same threshold input:
+    // it never touches settings.threshold or push() directly, it just moves
+    // the slider and lets its own 'input' handler do the real work.
+    const thresholdInput = document.getElementById('threshold') as HTMLInputElement;
+    function setThresholdFromClientX(clientX: number): void {
+      const rect = bar.getBoundingClientRect();
+      const frac = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+      thresholdInput.value = (Math.round(frac / 0.01) * 0.01).toFixed(2);
+      thresholdInput.dispatchEvent(new Event('input'));
+    }
+    bar.addEventListener('pointerdown', (e) => {
+      bar.setPointerCapture(e.pointerId);
+      setThresholdFromClientX(e.clientX);
+    });
+    bar.addEventListener('pointermove', (e) => {
+      if (e.buttons !== 1) return; // ponytail: ignore hover moves, only act while dragging
+      setThresholdFromClientX(e.clientX);
+    });
+
     wireSlider('drain', 'drainValue', 'drain');
     wireSlider('refill', 'refillValue', 'refill');
     wireSlider('size', 'sizeValue', 'size');

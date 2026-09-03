@@ -76,7 +76,7 @@ function toggleSettings(): void {
     width: 440,
     height: 780,
     title: 'Réglages — noise-overlay',
-    backgroundColor: '#14161b',
+    backgroundColor: '#101923', // --hcds-surface, dark theme (src/tokens.css)
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
