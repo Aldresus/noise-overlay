@@ -1,46 +1,15 @@
-declare const drag: {
-  start(): void;
-  move(x: number, y: number): void;
-};
-
-declare const menu: {
-  action(name: string): void;
-};
-
-declare const Levels: {
-  rmsToLevel(rms: number): number;
-  emaStep(avg: number, level: number, alpha: number): number;
-  alphaFromDt(dt: number, tau?: number): number;
-  patienceStep(
-    prev: number,
-    smoothedLevel: number,
-    threshold: number,
-    dt: number,
-    drainSeconds?: number,
-    refillSeconds?: number,
-  ): number;
-  moodState(patience: number): 'content' | 'attentif' | 'inquiet' | 'fache';
-  TAU: number;
-  DRAIN_SECONDS: number;
-  REFILL_SECONDS: number;
-};
+// ambient declarations (drag, menu, api, Levels, Settings) live in globals.d.ts
 
 (function (): void {
-  const readout = document.getElementById('readout')!;
+  // ponytail: the mic error stays here only. This window is always visible and
+  // owns the microphone; relaying the message to a window that may be closed
+  // would be more plumbing than the message is worth.
   const err = document.getElementById('err')!;
-  const fill = document.getElementById('fill')!;
-  const tickEl = document.getElementById('tick')!;
-  const thresholdMarker = document.getElementById('thresholdMarker')!;
-  const micSelect = document.getElementById('micSelect') as HTMLSelectElement;
-  const patienceFill = document.getElementById('patienceFill')!;
-  const stateEl = document.getElementById('state')!;
-  const overTimeEl = document.getElementById('overTime')!;
   const catSvg = document.getElementById('cat')!;
   let shownState = '';
 
   // manual drag: app-region drag is gone (it ate right-clicks, see main.ts),
-  // so #persona drives the window via IPC instead. Scoped to #persona only —
-  // the panel's sliders/select/checkbox never start a drag.
+  // so #persona drives the window via IPC instead.
   const persona = document.getElementById('persona')!;
   persona.addEventListener('pointerdown', (e: PointerEvent) => {
     if (e.button !== 0) return;
@@ -54,6 +23,7 @@ declare const Levels: {
   persona.addEventListener('pointerup', (e: PointerEvent) => {
     if (persona.hasPointerCapture(e.pointerId)) persona.releasePointerCapture(e.pointerId);
   });
+
   // right-click menu, drawn in the page (see #ctxmenu in index.html). Right-
   // click only reaches the renderer at all because app-region drag is gone.
   const ctxmenu = document.getElementById('ctxmenu')!;
@@ -70,8 +40,7 @@ declare const Levels: {
     // the available width and would report a wrapped, narrower box.
     ctxmenu.style.left = ctxmenu.style.top = '0px';
     const { width, height } = ctxmenu.getBoundingClientRect();
-    // clamp against the live viewport — the window is 360 in overlay mode and
-    // 720 in settings mode, and nothing outside it is drawn.
+    // clamp against the live viewport — nothing outside it is drawn.
     const M = 4; // keep the border off the window edge
     ctxmenu.style.left = `${Math.max(M, Math.min(e.clientX, window.innerWidth - width - M))}px`;
     ctxmenu.style.top = `${Math.max(M, Math.min(e.clientY, window.innerHeight - height - M))}px`;
@@ -100,54 +69,11 @@ declare const Levels: {
     if (!ctxmenu.contains(e.target as Node)) closeMenu();
   });
 
-  const MOOD_FR = {
-    content: 'Le chat est content',
-    attentif: 'Le chat dresse les oreilles',
-    inquiet: 'Le chat est inquiet',
-    fache: 'Le chat en a assez',
-  };
-
   function rms(data: Float32Array): number {
     let sum = 0;
     for (let i = 0; i < data.length; i++) sum += data[i] * data[i];
     return Math.sqrt(sum / data.length);
   }
-
-  // ponytail: Electron's localStorage is already stored per-app under
-  // app.getPath('userData'), so no separate JSON config or IPC is needed.
-  function wireSlider(
-    inputId: string,
-    readoutId: string,
-    storageKey: string,
-    defaultValue: number,
-    onChange?: (value: number) => void,
-  ): () => number {
-    const input = document.getElementById(inputId) as HTMLInputElement;
-    const readoutEl = document.getElementById(readoutId)!;
-    let value = Number(localStorage.getItem(storageKey) ?? String(defaultValue));
-    input.value = String(value);
-    readoutEl.textContent = String(value);
-    onChange?.(value);
-    input.addEventListener('input', () => {
-      value = Number(input.value);
-      readoutEl.textContent = String(value);
-      localStorage.setItem(storageKey, String(value));
-      onChange?.(value);
-    });
-    return () => value;
-  }
-
-  const getThreshold = wireSlider('threshold', 'thresholdValue', 'noise-overlay:threshold', 0.5, (v) => {
-    thresholdMarker.style.left = `${v * 100}%`;
-  });
-  const getDrainSeconds = wireSlider('drain', 'drainValue', 'noise-overlay:drain', Levels.DRAIN_SECONDS);
-  const getRefillSeconds = wireSlider('refill', 'refillValue', 'noise-overlay:refill', Levels.REFILL_SECONDS);
-
-  const soundCheckbox = document.getElementById('sound') as HTMLInputElement;
-  soundCheckbox.checked = localStorage.getItem('noise-overlay:sound') === 'true';
-  soundCheckbox.addEventListener('change', () => {
-    localStorage.setItem('noise-overlay:sound', String(soundCheckbox.checked));
-  });
 
   function playWorryChime(): void {
     if (!ctx) return;
@@ -170,6 +96,8 @@ declare const Levels: {
   let avg = 0;
   let patience = 1;
   let overSeconds = 0;
+  // placeholder until getSettings() resolves; size is main's business, unused here
+  let settings: Settings = { threshold: 0.5, drain: 20, refill: 40, sound: false, micId: '', size: 360 };
   const MAX_DT = 0.25; // clamp so a minimised window doesn't jump the gauge
 
   async function openStream(deviceId?: string): Promise<void> {
@@ -193,32 +121,38 @@ declare const Levels: {
     source.connect(analyser);
   }
 
-  async function populateMics(): Promise<void> {
+  // only this window has microphone permission, so it is the one that can read
+  // device labels; main caches the list for the settings window.
+  async function sendMics(): Promise<void> {
     const devices = await navigator.mediaDevices.enumerateDevices();
-    const inputs = devices.filter((d) => d.kind === 'audioinput');
-    const selected = micSelect.value;
-    micSelect.innerHTML = '';
-    for (const d of inputs) {
-      const opt = document.createElement('option');
-      opt.value = d.deviceId;
-      opt.textContent = d.label || d.deviceId;
-      micSelect.appendChild(opt);
-    }
-    if (selected) micSelect.value = selected;
+    api.sendMics(
+      devices
+        .filter((d) => d.kind === 'audioinput')
+        .map((d) => ({ deviceId: d.deviceId, label: d.label || d.deviceId })),
+    );
   }
 
-  micSelect.addEventListener('change', () => {
-    openStream(micSelect.value).catch((e: unknown) => {
-      err.textContent = 'Micro inaccessible : ' + (e instanceof Error ? e.message : String(e));
-    });
+  api.onSettings((s: Settings) => {
+    const micChanged = s.micId !== settings.micId;
+    settings = s;
+    if (micChanged) {
+      openStream(s.micId || undefined).catch((e: unknown) => {
+        err.textContent = 'Micro inaccessible : ' + (e instanceof Error ? e.message : String(e));
+      });
+    }
   });
 
   async function main(): Promise<void> {
-    await openStream();
-    await populateMics();
+    settings = await api.getSettings();
+    await openStream(settings.micId || undefined);
+    await sendMics();
 
     const data = new Float32Array(2048);
     let lastT = performance.now();
+    // ponytail: the settings window redraws bars, not a waveform — 20 Hz is
+    // already smoother than the eye needs, and 60 Hz of IPC is pure waste.
+    let lastSend = 0;
+    const SEND_MS = 50;
 
     function frame(): void {
       const now = performance.now();
@@ -232,33 +166,26 @@ declare const Levels: {
       const alpha = Levels.alphaFromDt(dt, Levels.TAU);
       avg = Levels.emaStep(avg, instLevel, alpha);
       const smoothedLevel = avg;
-      const threshold = getThreshold();
+      const threshold = settings.threshold;
       const over = smoothedLevel > threshold;
 
-      patience = Levels.patienceStep(patience, smoothedLevel, threshold, dt, getDrainSeconds(), getRefillSeconds());
+      patience = Levels.patienceStep(patience, smoothedLevel, threshold, dt, settings.drain, settings.refill);
       if (over) overSeconds += dt;
 
-      fill.style.width = `${smoothedLevel * 100}%`;
-      fill.classList.toggle('over', over);
-      tickEl.style.left = `${instLevel * 100}%`;
-      patienceFill.style.width = `${patience * 100}%`;
       const state = Levels.moodState(patience);
       if (state !== shownState) {
         const rank = { content: 0, attentif: 1, inquiet: 2, fache: 3 };
-        if (shownState && soundCheckbox.checked && rank[state] > rank[shownState as keyof typeof rank]) {
+        if (shownState && settings.sound && rank[state] > rank[shownState as keyof typeof rank]) {
           playWorryChime();
         }
         shownState = state;
-        stateEl.textContent = MOOD_FR[state];
-        patienceFill.className = state; // same four mood colours as the halo
         catSvg.setAttribute('class', state); // CSS does the rest: one class, one pose
       }
-      overTimeEl.textContent = `${overSeconds.toFixed(1).replace('.', ',')} s au-dessus du seuil`;
 
-      readout.textContent =
-        `rms:       ${rawRms.toFixed(6)}\n` +
-        `dBFS:      ${dbfs.toFixed(2)}\n` +
-        `smoothed:  ${avg.toFixed(6)}`;
+      if (now - lastSend >= SEND_MS) {
+        lastSend = now;
+        api.sendMeters({ level: smoothedLevel, inst: instLevel, patience, state, over, overSeconds, rms: rawRms, dbfs });
+      }
 
       requestAnimationFrame(frame);
     }

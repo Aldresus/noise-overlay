@@ -9,42 +9,20 @@
     padding: 0;
   }
   body {
-    /* on body, not html: the viewport takes its overflow from body when html
-       is `visible`, so body.interactive below can re-enable scrolling. */
+    /* the cat is the whole window: nothing may ever scroll here. */
     overflow: hidden;
     color: #e7e9ee;
     font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
     font-size: 15px;
     line-height: 1.45;
   }
-  #panel {
-    display: none;
-    background: #14161b;
-    padding: 18px 20px 22px;
-  }
-  body.interactive #panel { display: block; }
-  /* the only place a scrollbar is allowed: the settings panel can outgrow the
-     window, and an unreachable slider is worse than a scrollbar */
-  body.interactive { overflow: auto; }
 
-  .card {
-    background: #1c1f27;
-    border: 1px solid #2b303b;
-    border-radius: 10px;
-    padding: 14px 16px;
-    margin-bottom: 14px;
-  }
-  .card h2 {
-    font-size: 12px;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    color: #99a3b5;
-    font-weight: 600;
-    margin: 0 0 10px;
-  }
-  .hint { font-size: 13px; color: #99a3b5; margin: 2px 0 0; }
-
+  /* fixed: the cat fills the whole viewport and body no longer scrolls, so a
+     banner in normal flow would sit permanently off-screen. */
   #err {
+    position: fixed;
+    left: 0; right: 0; top: 0;
+    z-index: 20;
     color: #ffd7d1;
     background: #5a1e17;
     border: 1px solid #e0503f;
@@ -55,132 +33,11 @@
   }
   #err:empty { display: none; }
 
-  /* --- état --------------------------------------------------------- */
-  .status { display: flex; align-items: baseline; gap: 10px; }
-  #state { font-size: 26px; font-weight: 600; }
-  #overTime { font-size: 13px; color: #8b94a5; margin-left: auto; }
-
-  /* --- jauges ------------------------------------------------------- */
-  #bar, #patienceBar {
-    position: relative;
-    width: 100%;
-    background: #0e1014;
-    border: 1px solid #2b303b;
-    border-radius: 6px;
-    box-sizing: border-box;
-    overflow: hidden;
-  }
-  #bar { height: 46px; margin-bottom: 10px; }
-  #patienceBar { height: 20px; }
-  #fill, #patienceFill {
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    transition: background 400ms ease;
-  }
-  #fill { width: 0%; background: #5cbf74; }
-  #fill.over { background: #e0503f; }
-  #patienceFill { width: 100%; background: #5cbf74; }
-  #patienceFill.attentif { background: #e8b93c; }
-  #patienceFill.inquiet  { background: #ef8b3c; }
-  #patienceFill.fache    { background: #e0503f; }
-  /* instantaneous level, drawn over the smoothed fill */
-  #tick {
-    position: absolute;
-    top: 0; bottom: 0;
-    width: 3px;
-    left: 0%;
-    background: #ffffff;
-    box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
-  }
-  /* the line the teacher is setting: full height + a flag notch on top */
-  #thresholdMarker {
-    position: absolute;
-    top: 0; bottom: 0;
-    width: 3px;
-    left: 50%;
-    background: #ffd52e;
-    z-index: 2;
-  }
-  #thresholdMarker::before {
-    content: '';
-    position: absolute;
-    top: 0; left: -4px;
-    border-left: 5.5px solid transparent;
-    border-right: 5.5px solid transparent;
-    border-top: 8px solid #ffd52e;
-  }
-  .legend { display: flex; gap: 16px; font-size: 12px; color: #99a3b5; }
-  .legend span::before {
-    content: '';
-    display: inline-block;
-    width: 10px; height: 10px;
-    border-radius: 2px;
-    margin-right: 6px;
-    background: currentColor;
-  }
-  .legend .k-seuil { color: #ffd52e; }
-  .legend .k-inst { color: #ffffff; }
-  .legend .k-moy { color: #5cbf74; }
-
-  /* --- réglages ----------------------------------------------------- */
-  .control { margin-bottom: 18px; }
-  .control:last-child { margin-bottom: 0; }
-  .control > label { display: block; font-weight: 600; }
-  .val {
-    color: #7fd4ff;
-    font-variant-numeric: tabular-nums;
-    font-size: 17px;
-  }
-  input[type="range"] {
-    width: 100%;
-    margin: 8px 0 0;
-    height: 26px;
-    accent-color: #7fd4ff;
-  }
-  .check { display: flex; align-items: center; gap: 10px; font-weight: 600; }
-  .check input { width: 20px; height: 20px; accent-color: #7fd4ff; }
-
-  #micSelect {
-    width: 100%;
-    margin-top: 6px;
-    font: inherit;
-    color: #e7e9ee;
-    background: #0e1014;
-    border: 1px solid #2b303b;
-    border-radius: 8px;
-    padding: 9px 10px;
-  }
-
-  details { margin-bottom: 14px; }
-  summary {
-    cursor: pointer;
-    color: #99a3b5;
-    font-size: 13px;
-    padding: 4px 0;
-  }
-  #readout {
-    white-space: pre;
-    font-family: 'Consolas', monospace;
-    font-size: 13px;
-    color: #99a3b5;
-    margin-top: 8px;
-  }
-
-  footer { font-size: 12px; color: #767f8f; text-align: center; }
-  kbd {
-    font: inherit;
-    background: #1c1f27;
-    border: 1px solid #2b303b;
-    border-radius: 4px;
-    padding: 1px 5px;
-    color: #a9b2c1;
-  }
-
   :focus-visible { outline: 2px solid #7fd4ff; outline-offset: 2px; }
 
   /* --- menu clic droit ---------------------------------------------- */
   /* drawn in the page, not by Menu.popup(): a native menu's look is the OS's
-     business, and this one has to match the panel above. */
+     business, and this one has to match the settings window. */
   #ctxmenu {
     position: fixed;
     left: 0; top: 0;
@@ -220,7 +77,7 @@
     color: #7fd4ff;
   }
   body.fullscreen #ctxmenu [data-action="fullscreen"]::before,
-  body.interactive #ctxmenu [data-action="settings"]::before { content: '✓'; }
+  body.settings-open #ctxmenu [data-action="settings"]::before { content: '✓'; }
 
   /* --- mascotte ------------------------------------------------------- */
   /* overlay mode: the cat IS the window; renderer.ts drags it manually via IPC. */
@@ -232,13 +89,6 @@
   /* display:block or the inline SVG sits on a text baseline and the few px of
      descender space below it are enough to trigger a scrollbar at 100vh. */
   #cat { width: 100%; height: 100%; display: block; }
-
-  body.interactive #persona {
-    width: min(60vh, 90vw);
-    height: auto;
-    aspect-ratio: 1 / 1;
-    margin: 0 auto 16px;
-  }
 
   /* fullscreen: solid backing so the desktop never shows through behind the
      cat on a projector, and the cat scales to fill the viewport. */
@@ -384,69 +234,6 @@
   <button type="button" data-action="quit">Quitter</button>
 </div>
 <div id="err"></div>
-<div id="panel">
-
-<section class="card">
-  <h2>Humeur du chat</h2>
-  <div class="status">
-    <div id="state">Le chat est content</div>
-    <div id="overTime">0,0 s au-dessus du seuil</div>
-  </div>
-  <div id="patienceBar"><div id="patienceFill"></div></div>
-  <p class="hint">La jauge se vide quand le bruit dépasse le seuil, et se remplit au calme.</p>
-</section>
-
-<section class="card">
-  <h2>Bruit de la classe</h2>
-  <div id="bar">
-    <div id="fill"></div>
-    <div id="tick"></div>
-    <div id="thresholdMarker"></div>
-  </div>
-  <div class="legend">
-    <span class="k-moy">niveau moyen</span>
-    <span class="k-inst">instant</span>
-    <span class="k-seuil">seuil réglé</span>
-  </div>
-  <div class="control" style="margin-top:14px">
-    <label for="threshold">Seuil de bruit — <span class="val" id="thresholdValue"></span></label>
-    <p class="hint">Placez la ligne jaune juste au-dessus du bruit de travail normal : au-dessus, le chat perd patience.</p>
-    <input id="threshold" type="range" min="0" max="1" step="0.01" value="0.5" />
-  </div>
-</section>
-
-<section class="card">
-  <h2>Réactivité</h2>
-  <div class="control">
-    <label for="drain">Patience — le chat se fâche après <span class="val" id="drainValue"></span> s de bruit</label>
-    <input id="drain" type="range" min="5" max="120" step="1" value="20" />
-  </div>
-  <div class="control">
-    <label for="refill">Récupération — il se calme après <span class="val" id="refillValue"></span> s de silence</label>
-    <input id="refill" type="range" min="5" max="300" step="5" value="40" />
-  </div>
-  <div class="control">
-    <label class="check" for="sound"><input id="sound" type="checkbox" /> Petit son quand le chat s'inquiète</label>
-  </div>
-</section>
-
-<section class="card">
-  <h2>Micro</h2>
-  <label for="micSelect" class="hint">Microphone utilisé pour écouter la classe</label>
-  <select id="micSelect"></select>
-</section>
-
-<details>
-  <summary>Détails techniques</summary>
-  <div id="readout">démarrage...</div>
-</details>
-
-<footer>
-  <kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>P</kbd> réglages &nbsp;·&nbsp;
-  <kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>F</kbd> plein écran &nbsp;·&nbsp;
-  <kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>Q</kbd> quitter
-</footer>
-</div>
 <script src="../dist/levels.js"></script>
 <script src="../dist/renderer.js"></script>
 </body>
