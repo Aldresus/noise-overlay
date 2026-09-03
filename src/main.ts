@@ -178,10 +178,18 @@ function registerIPC(): void {
     dragOffsetY = cursor.y - wy;
   });
   ipcMain.on('drag-move', (_event, x: number, y: number) => {
-    // setPosition only takes integers, and screenX/screenY come back fractional
-    // on a second monitor with a different DPI scale — unrounded it throws
-    // "conversion failure" in the main process mid-drag.
-    win.setPosition(Math.round(x - dragOffsetX), Math.round(y - dragOffsetY));
+    // setBounds, not setPosition: dragging across monitors with different DPI
+    // scales makes the size drift, and every mouse event compounds it — the cat
+    // grew while the button was held. Restating width/height each move pins it.
+    // Rounded because these are fractional in CSS px on a scaled display, and
+    // the API only takes integers ("conversion failure" mid-drag otherwise).
+    const size = settings.size;
+    win.setBounds({
+      x: Math.round(x - dragOffsetX),
+      y: Math.round(y - dragOffsetY),
+      width: size,
+      height: size,
+    });
   });
 
   ipcMain.handle('settings-get', () => settings);
