@@ -79,6 +79,13 @@
       `smoothed:  ${m.level.toFixed(6)}`;
   });
 
+  // the reset lives in main: only it knows the screen work area. Reuses the
+  // in-page menu's channel rather than adding one for a single button, and sits
+  // outside getSettings() because it reads no setting.
+  document
+    .getElementById('resetPos')!
+    .addEventListener('click', () => menu.action('reset-position'));
+
   api.getSettings().then((s) => {
     settings = s;
 

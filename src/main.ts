@@ -125,14 +125,28 @@ function buildTrayMenu(): void {
   tray.setContextMenu(menu);
 }
 
-function createWindow(): void {
+// where the overlay starts, and where "réinitialiser la position" puts it back.
+// Recomputed on every call rather than stored: the work area changes when a
+// projector is plugged in or unplugged, which is exactly when the cat ends up
+// off-screen and someone reaches for the button.
+function homePosition(size: number): { x: number; y: number } {
   const { width: sw, height: sh } = screen.getPrimaryDisplay().workAreaSize;
+  return { x: sw - size - MARGIN, y: sh - size - MARGIN };
+}
+
+function resetPosition(): void {
+  if (win.isFullScreen()) return; // nothing to move: it covers the screen
+  const size = settings.size;
+  // setBounds with the size restated, same reason as drag-move below.
+  win.setBounds({ ...homePosition(size), width: size, height: size });
+}
+
+function createWindow(): void {
   const size = settings.size; // restored size, so the corner anchor still lands right
   win = new BrowserWindow({
     width: size,
     height: size,
-    x: sw - size - MARGIN,
-    y: sh - size - MARGIN,
+    ...homePosition(size),
     frame: false,
     transparent: true,
     backgroundColor: '#00000000',
@@ -169,6 +183,7 @@ function registerIPC(): void {
   ipcMain.on('menu-action', (_event, action: string) => {
     if (action === 'fullscreen') toggleFullscreen();
     else if (action === 'settings') toggleSettings();
+    else if (action === 'reset-position') resetPosition();
     else if (action === 'quit') app.quit();
   });
   ipcMain.on('drag-start', () => {

@@ -148,6 +148,22 @@
   }
   input[type="range"]:hover::-webkit-slider-thumb { background: var(--hcds-accent-hover); }
 
+  /* Button, secondary variant: 40px tall, 0 16px padding, radius-control. */
+  .btn {
+    align-self: flex-start;
+    height: 40px;
+    padding: 0 16px;
+    font: inherit;
+    font-weight: 500;
+    color: var(--hcds-fg);
+    background: var(--hcds-surface);
+    border: 1px solid var(--hcds-border);
+    border-radius: var(--hcds-radius-control);
+    cursor: pointer;
+    transition: background var(--hcds-duration-base) ease, border-color var(--hcds-duration-base) ease;
+  }
+  .btn:hover { background: var(--hcds-surface-sunken); border-color: var(--hcds-border-strong); }
+
   /* Checkbox: 20x20 box, radius-control / 2 */
   .check { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; }
   .check input {
@@ -283,6 +299,10 @@
     <label for="size">Taille du chat — <span class="val" id="sizeValue"></span> px</label>
     <p class="hint">Le chat reste carré ; il se redimensionne depuis son coin haut-gauche.</p>
     <input id="size" type="range" min="120" max="1000" step="20" value="360" />
+  </div>
+  <div class="control">
+    <button id="resetPos" class="btn" type="button">Réinitialiser la position</button>
+    <p class="hint">Replace le chat en bas à droite de l'écran, s'il a été déplacé hors de vue.</p>
   </div>
 </section>
 
