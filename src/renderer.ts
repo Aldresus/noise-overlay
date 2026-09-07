@@ -23,6 +23,9 @@
   persona.addEventListener('pointerup', (e: PointerEvent) => {
     if (persona.hasPointerCapture(e.pointerId)) persona.releasePointerCapture(e.pointerId);
   });
+  // double-clic sur le chat : entre et sort du plein écran. Sur #persona et pas
+  // sur document, pour ne pas basculer sur un double-clic dans le fond noir.
+  persona.addEventListener('dblclick', () => menu.action('fullscreen'));
 
   // right-click menu, drawn in the page (see #ctxmenu in index.html). Right-
   // click only reaches the renderer at all because app-region drag is gone.
