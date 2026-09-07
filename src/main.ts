@@ -10,6 +10,11 @@ const MAX_SIZE = 1000;
 let win: BrowserWindow;
 let settingsWin: BrowserWindow | null = null;
 let tray: Tray;
+// ponytail: source de vérité du plein écran, et pas win.isFullScreen(). Sur
+// Windows une fenêtre `transparent: true` passe bien en plein écran mais
+// isFullScreen() reste false — donc toggleFullscreen ré-entrait au lieu de
+// sortir, et tous les gardes « sauf en plein écran » étaient morts. Vérifié :
+// la fenêtre mesure 2560x1440 pendant que isFullScreen() dit false.
 let fullscreen = false;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
@@ -106,9 +111,15 @@ function markSettingsOpen(): void {
 }
 
 function toggleFullscreen(): void {
-  fullscreen = !win.isFullScreen();
+  fullscreen = !fullscreen;
   win.setFullScreen(fullscreen);
   win.webContents.executeJavaScript(`document.body.classList.toggle('fullscreen', ${fullscreen})`);
+  // Échap sort du plein écran. Raccourci global, pas un keydown dans la page :
+  // en plein écran l'overlay peut ne jamais avoir eu le focus clavier, et la
+  // tray est masquée par la fenêtre. Enregistré seulement pendant le plein
+  // écran, pour ne pas confisquer Échap au reste du système le reste du temps.
+  if (fullscreen) globalShortcut.register('Escape', toggleFullscreen);
+  else globalShortcut.unregister('Escape');
   buildTrayMenu();
 }
 
@@ -135,7 +146,7 @@ function homePosition(size: number): { x: number; y: number } {
 }
 
 function resetPosition(): void {
-  if (win.isFullScreen()) return; // nothing to move: it covers the screen
+  if (fullscreen) return; // nothing to move: it covers the screen
   const size = settings.size;
   // setBounds with the size restated, same reason as drag-move below.
   win.setBounds({ ...homePosition(size), width: size, height: size });
@@ -167,7 +178,7 @@ function createWindow(): void {
   // the capability — will-resize only fires for user drags, setSize is untouched,
   // so the settings slider still works.
   win.on('will-resize', (event) => {
-    if (!win.isFullScreen()) event.preventDefault();
+    if (!fullscreen) event.preventDefault();
   });
   win.loadFile(path.join(__dirname, '..', 'src', 'index.html'));
 }
@@ -193,6 +204,7 @@ function registerIPC(): void {
     dragOffsetY = cursor.y - wy;
   });
   ipcMain.on('drag-move', (_event, x: number, y: number) => {
+    if (fullscreen) return; // rien à déplacer : la fenêtre couvre l'écran
     // setBounds, not setPosition: dragging across monitors with different DPI
     // scales makes the size drift, and every mouse event compounds it — the cat
     // grew while the button was held. Restating width/height each move pins it.
@@ -214,7 +226,7 @@ function registerIPC(): void {
     // the overlay is square and has no grab border of its own; the size slider
     // is what resizes it. Skipped in fullscreen — leaving fullscreen restores
     // the windowed size anyway.
-    if (!win.isFullScreen()) win.setSize(settings.size, settings.size);
+    if (!fullscreen) win.setSize(settings.size, settings.size);
     win.webContents.send('settings', settings);
   });
   // no-ops while the settings window is closed, so the overlay never has to be

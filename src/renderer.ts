@@ -33,7 +33,10 @@
     ctxmenu.hidden = true;
   }
 
-  persona.addEventListener('contextmenu', (e: MouseEvent) => {
+  // on document, not on #persona: en plein écran le chat ne couvre qu'une partie
+  // de l'écran et la tray est masquée par la fenêtre always-on-top — un clic
+  // droit sur le fond noir devait aussi ouvrir le menu, sinon on est piégé.
+  document.addEventListener('contextmenu', (e: MouseEvent) => {
     e.preventDefault();
     ctxmenu.hidden = false;
     // measure from the origin: at position:fixed an offset left edge shrinks
