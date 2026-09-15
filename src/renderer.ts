@@ -23,6 +23,9 @@
   persona.addEventListener('pointerup', (e: PointerEvent) => {
     if (persona.hasPointerCapture(e.pointerId)) persona.releasePointerCapture(e.pointerId);
   });
+  // double-clic sur le chat : entre et sort du plein écran. Sur #persona et pas
+  // sur document, pour ne pas basculer sur un double-clic dans le fond noir.
+  persona.addEventListener('dblclick', () => menu.action('fullscreen'));
 
   // right-click menu, drawn in the page (see #ctxmenu in index.html). Right-
   // click only reaches the renderer at all because app-region drag is gone.
@@ -33,7 +36,10 @@
     ctxmenu.hidden = true;
   }
 
-  persona.addEventListener('contextmenu', (e: MouseEvent) => {
+  // on document, not on #persona: en plein écran le chat ne couvre qu'une partie
+  // de l'écran et la tray est masquée par la fenêtre always-on-top — un clic
+  // droit sur le fond noir devait aussi ouvrir le menu, sinon on est piégé.
+  document.addEventListener('contextmenu', (e: MouseEvent) => {
     e.preventDefault();
     ctxmenu.hidden = false;
     // measure from the origin: at position:fixed an offset left edge shrinks
