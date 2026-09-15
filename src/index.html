@@ -163,18 +163,18 @@
     <!-- Two flat colour passes keep the silhouette soft and readable at a
          distance while leaving each ear free to rotate. -->
     <g fill="#37312b" stroke="#37312b" stroke-width="9" stroke-linejoin="round">
-      <path class="ear-l" d="M 50 76 L 57 23 L 95 58 Z" />
-      <path class="ear-r" d="M 150 76 L 143 23 L 105 58 Z" />
+      <path class="ear-l" d="M 50 76 L 57 29 Q 58 20 65 27 L 95 58 Z" />
+      <path class="ear-r" d="M 150 76 L 144 27 Q 143 19 137 26 L 105 58 Z" />
       <circle cx="100" cy="111" r="67" />
     </g>
 
     <g stroke="none">
       <g class="ear-l">
-        <path d="M 50 76 L 57 23 L 95 58 Z" fill="#9d8768" />
+        <path d="M 50 76 L 57 29 Q 58 20 65 27 L 95 58 Z" fill="#9d8768" />
         <path d="M 60 61 L 64 37 L 82 55 Z" fill="#d49a95" />
       </g>
       <g class="ear-r">
-        <path d="M 150 76 L 143 23 L 105 58 Z" fill="#9d8768" />
+        <path d="M 150 76 L 144 27 Q 143 19 137 26 L 105 58 Z" fill="#9d8768" />
         <path d="M 140 61 L 136 37 L 118 55 Z" fill="#d49a95" />
       </g>
       <circle cx="100" cy="111" r="67" fill="#9d8768" />
@@ -182,7 +182,7 @@
 
     <!-- The forehead M and cheek stripes are the real cat's strongest cues. -->
     <g fill="none" stroke="#463b31" stroke-linecap="round" stroke-linejoin="round">
-      <path stroke-width="6" d="M 78 73 L 86 56 L 96 71 L 100 55 L 104 71 L 114 56 L 122 73" />
+      <path stroke-width="5.5" d="M 80 73 Q 86 56 91 69 Q 96 58 100 70 Q 104 58 109 69 Q 114 56 120 73" />
       <path stroke-width="4.5" d="M 41 116 L 58 111 M 42 130 L 60 124 M 159 116 L 142 111 M 158 130 L 140 124" />
     </g>
 
@@ -192,12 +192,14 @@
         <ellipse cx="72" cy="108" rx="15.5" ry="17.5" fill="#a9ad68" />
         <ellipse class="pupil" cx="73" cy="109" rx="6" ry="12" fill="#1d1b18" />
         <circle cx="67" cy="101" r="3.5" fill="#fff" />
+        <circle cx="77" cy="116" r="1.6" fill="#fff" />
       </g>
       <g class="eye-r">
         <ellipse cx="128" cy="108" rx="20" ry="22" fill="#37312b" />
         <ellipse cx="128" cy="108" rx="15.5" ry="17.5" fill="#a9ad68" />
         <ellipse class="pupil" cx="127" cy="109" rx="6" ry="12" fill="#1d1b18" />
         <circle cx="123" cy="101" r="3.5" fill="#fff" />
+        <circle cx="131" cy="116" r="1.6" fill="#fff" />
       </g>
     </g>
 
